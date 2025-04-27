@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  localtunnel-test:
+    build: .
+    container_name: localtunnel-test
+    environment:
+      - LOCAL_PORT=3000
+      - SUBDOMAIN=new-test
+      - LT_HOST=https://localtunnel.me 
+      - LOCAL_HOST=host.docker.internal
+    restart: unless-stopped
