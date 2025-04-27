@@ -4,6 +4,7 @@ require('dotenv').config();
 class TunnelManager {
     constructor() {
         this.tunnel = null;
+        this.isShuttingDown = false;
         this.config = {
             port: process.env.LOCAL_PORT,
             subdomain: process.env.SUBDOMAIN,
@@ -32,18 +33,24 @@ class TunnelManager {
             console.log(`Tunnel established at: ${this.tunnel.url}`);
             
             this.tunnel.on('close', () => {
-                console.log('Tunnel closed. Attempting to reconnect...');
-                this.reconnect();
+                if (!this.isShuttingDown) {
+                    console.log('Tunnel closed. Attempting to reconnect...');
+                    this.reconnect();
+                }
             });
 
             this.tunnel.on('error', (err) => {
-                console.error('Tunnel error:', err);
-                this.reconnect();
+                if (!this.isShuttingDown) {
+                    console.error('Tunnel error:', err);
+                    this.reconnect();
+                }
             });
 
         } catch (err) {
             console.error('Failed to establish tunnel:', err);
-            this.reconnect();
+            if (!this.isShuttingDown) {
+                this.reconnect();
+            }
         }
     }
 
@@ -57,6 +64,7 @@ class TunnelManager {
     }
 
     async close() {
+        this.isShuttingDown = true;
         if (this.tunnel) {
             await this.tunnel.close();
             console.log('Tunnel closed gracefully');
